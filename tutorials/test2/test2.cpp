@@ -1,3 +1,5 @@
+#define _CRT_SECURE_NO_WARNINGS
+
 #include "MiniDNN.h"
 #include "Utils/MiniDNNStream.h"
 using namespace MiniDNN;

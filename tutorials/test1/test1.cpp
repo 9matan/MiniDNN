@@ -1,3 +1,5 @@
+#define _CRT_SECURE_NO_WARNINGS
+
 #include "MiniDNN.h"
 #include "Utils/MiniDNNStream.h"
 using namespace MiniDNN;
@@ -55,9 +57,12 @@ int main()
     VerboseCallback callback;
     net.set_callback(callback);
     // Initialize parameters with N(0, 0.01^2) using random seed 123
-    net.init(0, 0.01, 000);
+    const int seed = 123;
+    net.init(0, 0.01, seed);
     // Fit the model with a batch size of 100, running 10 epochs with random seed 123
-    net.fit(opt, x, y, 1000, 1000, 000);
+    const int batch_size = 100;
+    const int epochs_count = 10;
+    net.fit(opt, x, y, batch_size, epochs_count, seed);
     // Obtain prediction -- each column is an observation
     Matrix pred = net.predict(xt);
     // Export the network to the NetFolder folder with prefix NetFile
@@ -67,7 +72,10 @@ int main()
     // Read structure and paramaters from file
     netFromFile.read_net("./NetFolder/", "NetFile");
     // Test that they give the same prediction
-    std::cout << (yt - netFromFile.predict(xt)).norm()/yt.norm() << std::endl;
+    std::cout << "Serialization error of the prediction: " << (pred - netFromFile.predict(xt)).norm()/yt.norm() << std::endl;
+    // Loss
+    std::cout << "Training loss: " << (y - netFromFile.predict(x)).norm() / y.norm() << std::endl;
+    std::cout << "Testing loss: " << (yt - netFromFile.predict(xt)).norm() / yt.norm() << std::endl;
     // Layer objects will be freed by the network object,
     // so do not manually delete them
     return 0;
