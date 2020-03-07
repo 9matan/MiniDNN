@@ -253,6 +253,11 @@ void read_dense_tensor(TensorType& Tensor, std::string folder,
 void write_vector_to_file(const std::vector<Scalar>& myVector,
                           std::string filename)
 {
+    if (myVector.empty())
+    {
+        return;
+    }
+
     std::ofstream ofs(filename.c_str(), std::ios::out | std::ios::binary);
     std::ostream_iterator<char> osi(ofs);
     const char* beginByte = (char*)&myVector[0];
@@ -274,7 +279,10 @@ std::vector<Scalar> read_vector_from_file(std::string filename)
     std::istreambuf_iterator<char> end;
     std::copy(iter, end, std::back_inserter(buffer));
     std::vector<double> newVector(buffer.size() / sizeof(double));
-    memcpy(&newVector[0], &buffer[0], buffer.size());
+    if (!buffer.empty())
+    {
+        memcpy(&newVector[0], &buffer[0], buffer.size());
+    }
     return newVector;
 }
 
