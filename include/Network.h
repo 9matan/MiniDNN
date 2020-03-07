@@ -496,7 +496,7 @@ class Network
         ///
         void export_net(std::string folder, std::string fileName)
         {
-            system(("mkdir " + folder).c_str());
+            CreateFolder(folder);
             fill_map();
             write_map(folder + "/" + fileName, netMap);
             write_parameters(folder, fileName, params);

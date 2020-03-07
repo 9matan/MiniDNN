@@ -6,17 +6,20 @@
 #define MiniDNNStream_H
 
 #include <stdio.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <algorithm>
 #include <fstream>
 #include <iterator>
 #include "Assert.h"
+#include "IO.h"
+#ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wold-style-cast"
+#endif // #ifdef __GNUC__
 #include <Eigen/Eigen>
 #include <unsupported/Eigen/CXX11/Tensor>
+#ifdef __GNUC__
 #pragma GCC diagnostic pop
+#endif // #ifdef __GNUC__
 #define MAXBUFSIZE (static_cast<int> (1e6))
 
 
@@ -56,7 +59,7 @@ std::string to_string(numberType num)
 void export_matrix(Eigen::MatrixXd& matrix, std::string Name,
                    std::string type = "python", std::string folder = "./Model")
 {
-    mkdir(folder.c_str(), ACCESSPERMS);
+    CreateFolder(folder.c_str());
     std::string est;
 
     if (type == "python")
@@ -135,7 +138,7 @@ template <typename MatrixType>
 void save_dense_matrix(MatrixType& Matrix, std::string folder,
                        std::string MatrixName)
 {
-    mkdir(folder.c_str(), ACCESSPERMS);
+    CreateFolder(folder.c_str());
     std::ofstream out(folder + MatrixName,
                       std::ios::out | std::ios::binary | std::ios::trunc);
     typename MatrixType::Index rows = Matrix.rows(), cols = Matrix.cols();
@@ -478,11 +481,18 @@ int read_map (std::string fname, std::map<std::string, int>& map)
     }
 
     map.clear();
-    char* buf = 0;
+#ifdef __linux__
     size_t buflen = 0;
-
+    char* buf = NULL;
     while (getline(&buf, &buflen, fp) > 0)
     {
+#elif _WIN32 // #ifdef __linux__
+    size_t const buflen = 1024;
+    char buf[buflen];
+    while(feof(fp) == 0)
+    {
+        fgets(buf, buflen, fp);
+#endif // #elif _WIN32
         char* nl = strchr(buf, '\n');
 
         if (nl == NULL)
@@ -506,10 +516,12 @@ int read_map (std::string fname, std::map<std::string, int>& map)
         count++;
     }
 
+#ifdef __linux__
     if (buf)
     {
         free(buf);
     }
+#endif // #ifdef __linux__
 
     fclose(fp);
     return count;
